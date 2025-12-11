@@ -276,7 +276,8 @@ public sealed class JellyfinWebViewModel : ObservableRecipient, IDisposable, IRe
     private void WView_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
     {
         // Must wait for CoreWebView2 to be initialized or the WebView2 would be unfocusable.
-        WebView.Focus(FocusState.Programmatic);
+        // Use Keyboard focus state for proper XY focus navigation on Xbox/gamepad
+        WebView.Focus(FocusState.Keyboard);
 
         WebView.CoreWebView2.Settings.IsGeneralAutofillEnabled = false; // Disable autofill on Xbox as it puts down the virtual keyboard.
         WebView.CoreWebView2.ContainsFullScreenElementChanged += JellyfinWebView_ContainsFullScreenElementChanged;
