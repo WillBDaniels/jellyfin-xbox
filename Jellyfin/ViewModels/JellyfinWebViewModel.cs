@@ -20,6 +20,7 @@ using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 
 namespace Jellyfin.ViewModels;
 
@@ -155,6 +156,12 @@ public sealed class JellyfinWebViewModel : ObservableRecipient, IDisposable, IRe
         }
 
         WebView = new WebView2();
+
+        // Enable XY focus navigation for gamepad support on Xbox
+        WebView.IsTabStop = true;
+        WebView.UseSystemFocusVisuals = false; // Hide focus border on WebView container (web content handles its own focus)
+        WebView.XYFocusKeyboardNavigation = XYFocusKeyboardNavigationMode.Enabled;
+
         WebView.CoreWebView2Initialized += WView_CoreWebView2Initialized;
         WebView.NavigationCompleted += JellyfinWebView_NavigationCompleted;
         WebView.WebMessageReceived += OnWebMessageReceived;

@@ -44,26 +44,32 @@ public sealed partial class App : Application
     {
         InitializeComponent();
 
-        if (!ApplicationViewScaling.TrySetDisableLayoutScaling(true))
+        // Try to disable layout scaling. This fails on some PCs, so removed the forced exception if this fails, app runs even if it does.
+        ApplicationViewScaling.TrySetDisableLayoutScaling(true);
+
+        try
         {
-            throw new InvalidOperationException("Failed to disable layout scaling.");
+            var minSize = new Windows.Foundation.Size(800, 600);
+            var displayInfo = HdmiDisplayInformation.GetForCurrentView();
+            if (displayInfo is not null)
+            {
+                var maxSize = displayInfo.GetSupportedDisplayModes().OrderByDescending(m => m.ResolutionWidthInRawPixels * m.ResolutionHeightInRawPixels).FirstOrDefault();
+                minSize = new Windows.Foundation.Size(maxSize.ResolutionWidthInRawPixels, maxSize.ResolutionHeightInRawPixels);
+            }
+            else
+            {
+                var currentDisplay = DisplayInformation.GetForCurrentView();
+                minSize = new Windows.Foundation.Size(currentDisplay.ScreenWidthInRawPixels, currentDisplay.ScreenHeightInRawPixels);
+            }
+
+            ApplicationView.PreferredLaunchViewSize = minSize;
+            ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
+        }
+        catch
+        {
+            // Display info APIs may fail on PC before window is created, use default windowing
         }
 
-        var minSize = new Windows.Foundation.Size(800, 600);
-        var displayInfo = HdmiDisplayInformation.GetForCurrentView();
-        if (displayInfo is not null)
-        {
-            var maxSize = displayInfo.GetSupportedDisplayModes().OrderByDescending(m => m.ResolutionWidthInRawPixels * m.ResolutionHeightInRawPixels).FirstOrDefault();
-            minSize = new Windows.Foundation.Size(maxSize.ResolutionWidthInRawPixels, maxSize.ResolutionHeightInRawPixels);
-        }
-        else
-        {
-            var currentDisplay = DisplayInformation.GetForCurrentView();
-            minSize = new Windows.Foundation.Size(currentDisplay.ScreenWidthInRawPixels, currentDisplay.ScreenHeightInRawPixels);
-        }
-
-        ApplicationView.PreferredLaunchViewSize = minSize;
-        ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
         DisplayRequest = new();
 
         Suspending += OnSuspending;
